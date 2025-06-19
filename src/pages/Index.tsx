@@ -21,10 +21,30 @@ const Index = () => {
   });
 
   const steps = [
-    { id: 1, title: "Dataset Upload", icon: FileSpreadsheet, status: currentStep > 1 ? "completed" : currentStep === 1 ? "current" : "pending" },
-    { id: 2, title: "Bias Analysis", icon: BarChart3, status: currentStep > 2 ? "completed" : currentStep === 2 ? "current" : "pending" },
-    { id: 3, title: "Mitigation", icon: Shield, status: currentStep > 3 ? "completed" : currentStep === 3 ? "current" : "pending" },
-    { id: 4, title: "Report", icon: Download, status: currentStep > 4 ? "completed" : currentStep === 4 ? "current" : "pending" },
+    { 
+      id: 1, 
+      title: "Dataset Upload", 
+      icon: FileSpreadsheet, 
+      status: (currentStep > 1 ? "completed" : currentStep === 1 ? "current" : "pending") as "completed" | "current" | "pending"
+    },
+    { 
+      id: 2, 
+      title: "Bias Analysis", 
+      icon: BarChart3, 
+      status: (currentStep > 2 ? "completed" : currentStep === 2 ? "current" : "pending") as "completed" | "current" | "pending"
+    },
+    { 
+      id: 3, 
+      title: "Mitigation", 
+      icon: Shield, 
+      status: (currentStep > 3 ? "completed" : currentStep === 3 ? "current" : "pending") as "completed" | "current" | "pending"
+    },
+    { 
+      id: 4, 
+      title: "Report", 
+      icon: Download, 
+      status: (currentStep > 4 ? "completed" : currentStep === 4 ? "current" : "pending") as "completed" | "current" | "pending"
+    },
   ];
 
   const progressPercentage = ((currentStep - 1) / (steps.length - 1)) * 100;

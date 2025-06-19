@@ -30,7 +30,7 @@ export const AuditReport = ({ onBack, auditData }: AuditReportProps) => {
         backgroundColor: '#ffffff'
       });
 
-      const imgData = canvas.getDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       
       // Calculate dimensions
