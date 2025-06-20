@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, TrendingUp, TrendingDown, CheckCircle } from "lucide-react";
+import { AlertTriangle, TrendingUp, TrendingDown, CheckCircle, Users, Shield } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface BiasAnalysisProps {
@@ -18,6 +18,7 @@ export const BiasAnalysis = ({ onNext, onBack, auditData, setAuditData }: BiasAn
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(true);
   const [biasMetrics, setBiasMetrics] = useState(null);
+  const [affectedGroups, setAffectedGroups] = useState(null);
 
   useEffect(() => {
     // Simulate analysis progress
@@ -39,11 +40,58 @@ export const BiasAnalysis = ({ onNext, onBack, auditData, setAuditData }: BiasAn
             demographicParity: -0.205,
             predictiveRateCorrection: 0.078,
           };
+
+          // Affected demographic groups analysis
+          const demographicGroups = {
+            primaryAttribute: auditData.protectedAttribute || "gender",
+            groups: [
+              {
+                name: "Female",
+                populationPercentage: 52.3,
+                impactLevel: "high",
+                negativeOutcomeRate: 0.284,
+                positiveOutcomeRate: 0.716,
+                biasScore: -0.188,
+                recommendations: ["Increase representation in training data", "Apply targeted reweighing"]
+              },
+              {
+                name: "Male", 
+                populationPercentage: 47.7,
+                impactLevel: "low",
+                negativeOutcomeRate: 0.156,
+                positiveOutcomeRate: 0.844,
+                biasScore: 0.188,
+                recommendations: ["Monitor for overcorrection", "Ensure balanced evaluation metrics"]
+              }
+            ],
+            intersectionalAnalysis: [
+              {
+                combination: "Female + Age 18-25",
+                impactLevel: "critical",
+                biasScore: -0.245,
+                populationSize: "12.4%"
+              },
+              {
+                combination: "Female + Age 50+",
+                impactLevel: "high", 
+                biasScore: -0.198,
+                populationSize: "15.7%"
+              },
+              {
+                combination: "Male + Age 25-35",
+                impactLevel: "medium",
+                biasScore: 0.089,
+                populationSize: "18.2%"
+              }
+            ]
+          };
           
           setBiasMetrics(metrics);
+          setAffectedGroups(demographicGroups);
           setAuditData({
             ...auditData,
             biasMetrics: metrics,
+            affectedGroups: demographicGroups,
           });
           
           return 100;
@@ -73,16 +121,27 @@ export const BiasAnalysis = ({ onNext, onBack, auditData, setAuditData }: BiasAn
       case "high": return "text-red-600 bg-red-100";
       case "medium": return "text-yellow-600 bg-yellow-100";
       case "low": return "text-green-600 bg-green-100";
+      case "critical": return "text-red-800 bg-red-200";
       default: return "text-gray-600 bg-gray-100";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "high": return <AlertTriangle className="w-4 h-4" />;
+      case "high": case "critical": return <AlertTriangle className="w-4 h-4" />;
       case "medium": return <TrendingUp className="w-4 h-4" />;
       case "low": return <CheckCircle className="w-4 h-4" />;
       default: return null;
+    }
+  };
+
+  const getImpactColor = (level: string) => {
+    switch (level) {
+      case "critical": return "text-red-800 bg-red-200 border-red-400";
+      case "high": return "text-red-600 bg-red-100 border-red-300";
+      case "medium": return "text-yellow-600 bg-yellow-100 border-yellow-300";
+      case "low": return "text-green-600 bg-green-100 border-green-300";
+      default: return "text-gray-600 bg-gray-100 border-gray-300";
     }
   };
 
@@ -153,6 +212,88 @@ export const BiasAnalysis = ({ onNext, onBack, auditData, setAuditData }: BiasAn
       </CardHeader>
 
       <CardContent className="space-y-8">
+        {/* Affected Demographic Groups Section */}
+        <div className="space-y-6">
+          <div className="flex items-center space-x-3">
+            <Users className="w-6 h-6 text-purple-400" />
+            <h3 className="text-xl font-black text-white tracking-wide">AFFECTED DEMOGRAPHIC GROUPS</h3>
+          </div>
+          
+          {/* Primary Groups Analysis */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {affectedGroups.groups.map((group, index) => (
+              <Card key={index} className={`bg-gradient-to-br from-slate-800/80 to-slate-700/80 border-2 ${getImpactColor(group.impactLevel)}`}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-black text-white text-lg tracking-wide">{group.name}</h4>
+                    <Badge className={`${getImpactColor(group.impactLevel)} font-black tracking-wide`}>
+                      {group.impactLevel.toUpperCase()} IMPACT
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-purple-200 font-bold">Population:</span>
+                      <span className="text-white font-black">{group.populationPercentage}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-200 font-bold">Bias Score:</span>
+                      <span className={`font-black ${group.biasScore < 0 ? 'text-red-400' : 'text-green-400'}`}>
+                        {group.biasScore.toFixed(3)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-200 font-bold">Negative Outcomes:</span>
+                      <span className="text-white font-black">{(group.negativeOutcomeRate * 100).toFixed(1)}%</span>
+                    </div>
+                    
+                    <div className="mt-4">
+                      <h5 className="text-sm font-black text-purple-200 mb-2">RECOMMENDATIONS:</h5>
+                      <ul className="text-xs text-purple-300 space-y-1">
+                        {group.recommendations.map((rec, i) => (
+                          <li key={i} className="flex items-start space-x-2">
+                            <Shield className="w-3 h-3 mt-0.5 text-purple-400" />
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Intersectional Analysis */}
+          <div className="space-y-4">
+            <h4 className="text-lg font-black text-white tracking-wide">INTERSECTIONAL BIAS ANALYSIS</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {affectedGroups.intersectionalAnalysis.map((intersection, index) => (
+                <div key={index} className="bg-gradient-to-r from-slate-800/60 to-slate-700/60 border border-purple-500/30 rounded-lg p-4 backdrop-blur-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-purple-200 text-sm">{intersection.combination}</span>
+                    <Badge className={`${getImpactColor(intersection.impactLevel)} text-xs font-bold`}>
+                      {intersection.impactLevel.toUpperCase()}
+                    </Badge>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-purple-300">Population:</span>
+                      <span className="text-white font-bold">{intersection.populationSize}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-purple-300">Bias Score:</span>
+                      <span className={`font-bold ${intersection.biasScore < 0 ? 'text-red-400' : 'text-green-400'}`}>
+                        {intersection.biasScore.toFixed(3)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="bg-gradient-to-br from-blue-900 to-blue-800 border-blue-400">
